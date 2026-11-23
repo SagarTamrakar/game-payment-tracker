@@ -1,0 +1,32 @@
+{
+  "name": "teen-patti-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "tsx watch server/index.ts",
+    "serve": "tsx server/index.ts",
+    "start": "npm run build && tsx server/index.ts",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "html-to-image": "^1.11.13",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
+    "@vitejs/plugin-react": "^6.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}
