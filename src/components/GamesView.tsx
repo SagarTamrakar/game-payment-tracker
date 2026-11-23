@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Avatar from './Avatar';
 import type { Ctx } from '../lib/ctx';
 import { same } from '../lib/ctx';
 import { uid } from '../lib/room';
@@ -17,8 +18,6 @@ export default function GamesView({ ctx, session }: { ctx: Ctx; session: Session
 
   return (
     <>
-      {isMaster && <PlayerManager ctx={ctx} session={session} mutate={mutate} />}
-      {isMaster && <GameForm key={session.games.length} session={session} mutate={mutate} />}
 
       <section className="card">
         <h2>{session.name} · standings</h2>
@@ -30,7 +29,7 @@ export default function GamesView({ ctx, session }: { ctx: Ctx; session: Session
             <tbody>
               {ranking.map((n) => (
                 <tr key={n} className={same(n, me) ? 'me' : ''}>
-                  <td>{n}{!session.players.includes(n) && <span className="tag">left</span>}</td>
+                  <td><Avatar name={n} />{n}{!session.players.includes(n) && <span className="tag">left</span>}</td>
                   <td>{agg.totals[n].games}</td>
                   <td className={agg.totals[n].net >= 0 ? 'pos' : 'neg'}><b>{money(agg.totals[n].net)}</b></td>
                 </tr>
@@ -40,8 +39,9 @@ export default function GamesView({ ctx, session }: { ctx: Ctx; session: Session
         )}
       </section>
 
+      {isMaster && <GameForm key={session.games.length} session={session} mutate={mutate} />}
       <section className="card">
-        <h2>Games</h2>
+        <h2>Game history</h2>
         {[...session.games].reverse().map((g) => {
           const idx = session.games.indexOf(g) + 1;
           return (
@@ -66,6 +66,7 @@ export default function GamesView({ ctx, session }: { ctx: Ctx; session: Session
         })}
         {session.games.length === 0 && <p className="muted">Nothing yet.</p>}
       </section>
+      {isMaster && <PlayerManager ctx={ctx} session={session} mutate={mutate} />}
     </>
   );
 }

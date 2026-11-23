@@ -1,3 +1,4 @@
+import Avatar from './Avatar';
 import { useMemo, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
 import { aggregate, directDebts, round2, settleUp } from '../lib/settle';
@@ -91,7 +92,7 @@ export default function Results({ ctx }: { ctx: Ctx }) {
           <tbody>
             {ranking.map((n) => (
               <tr key={n} className={same(n, ctx.me) ? 'me' : ''}>
-                <td>{n}</td>
+                <td><Avatar name={n} />{n}</td>
                 <td className="pos">{agg.totals[n].owed}</td>
                 <td className="neg">{agg.totals[n].owes}</td>
                 <td className={agg.totals[n].net >= 0 ? 'pos' : 'neg'}><b>{money(agg.totals[n].net)}</b></td>

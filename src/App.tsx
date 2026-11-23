@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { inviteLink, savedRoom, useRoom } from './lib/room';
+import { inviteLink, isLocalHost, savedRoom, useRoom } from './lib/room';
+import InviteCard from './components/InviteCard';
 import { useEffect } from 'react';
 import type { Ctx } from './lib/ctx';
 import Gate from './components/Gate';
@@ -14,17 +15,20 @@ export default function App() {
   const { view } = room;
   const [tab, setTab] = useState<Tab>('games');
   const [code] = useState(savedRoom);
-  const [copied, setCopied] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [lanBase, setLanBase] = useState<string | null>(null);
 
   // Rejoin the saved/linked game on load.
   useEffect(() => {
     if (code) room.join(code);
+    if (isLocalHost())
+      fetch('/lan').then((r) => r.json()).then((d) => setLanBase(d.urls?.[0] ?? null)).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!view)
     return (
       <div className="app">
-        <header><h1>♠ Teen Patti Tracker</h1></header>
+        <header className="topbar"><div className="brand"><span className="logo">♠</span><div><h1>Game Ledger</h1><div className="sub">Track who owes whom</div></div></div></header>
         <main>
           <Gate code={code} needJoin={room.needJoin} error={room.fatal || room.toast} onCreate={room.create} onJoin={room.join} />
         </main>
@@ -34,39 +38,37 @@ export default function App() {
   const ctx: Ctx = { isMaster: view.you.master, me: view.you.name, view, update: room.update, send: room.send };
   const { store } = view;
   const session = store.sessions.find((s) => s.id === store.activeId) ?? null;
-  const link = inviteLink(view.code);
-
-  const invite = async () => {
-    try {
-      if (navigator.share) await navigator.share({ title: 'Join my Teen Patti game', url: link });
-      else {
-        await navigator.clipboard.writeText(link);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } catch { /* cancelled */ }
-  };
+  const link = inviteLink(view.code, isLocalHost() && lanBase ? lanBase : location.origin);
 
   return (
     <div className="app">
-      <header>
-        <h1>♠ Teen Patti Tracker</h1>
-        <div className="muted">
-          <span className={room.online ? 'dot on' : 'dot'} /> {ctx.me} · {ctx.isMaster ? 'master' : 'player'} · game <b>{view.code}</b>{' '}
-          <button className="mini" onClick={invite}>{copied ? 'Link copied!' : '🔗 Invite link'}</button>
-          <button className="mini" onClick={() => confirm('Leave this game on this device?') && room.leave()}>Leave</button>
+      <header className="topbar">
+        <div className="brand">
+          <span className="logo">♠</span>
+          <div>
+            <h1>Game Ledger</h1>
+            <div className="sub">{session ? session.name : 'No session yet'}</div>
+          </div>
         </div>
-        <nav>
-          {(['setup', 'games', 'results'] as Tab[]).map((t) => (
-            <button key={t} className={tab === t ? 'tab on' : 'tab'} onClick={() => setTab(t)}>
-              {t === 'setup' ? 'Sessions' : t === 'games' ? 'Games' : 'Results'}
-            </button>
-          ))}
-        </nav>
-        {session && <div className="muted">Session: <b>{session.name}</b></div>}
-        {room.toast && <div className="toast">{room.toast}</div>}
+        <div className="actions">
+          <span className="pill" title={room.online ? 'Connected' : 'Reconnecting…'}>
+            <span className={room.online ? 'dot on' : 'dot'} /> {view.code}
+          </span>
+          <button className="ghost" onClick={() => setShowInvite(!showInvite)}>Invite</button>
+          <button className="ghost" onClick={() => confirm('Leave this game on this device?') && room.leave()}>Leave</button>
+        </div>
       </header>
+      <div className="who muted">Signed in as <b>{ctx.me}</b> · {ctx.isMaster ? 'master (can edit)' : 'viewer (read-only)'}</div>
+      <nav className="tabs">
+        {(['setup', 'games', 'results'] as Tab[]).map((t) => (
+          <button key={t} className={tab === t ? 'tab on' : 'tab'} onClick={() => setTab(t)}>
+            {t === 'setup' ? 'Sessions' : t === 'games' ? 'Games' : 'Results'}
+          </button>
+        ))}
+      </nav>
+      {room.toast && <div className="toast">{room.toast}</div>}
       <main>
+        {showInvite && <InviteCard link={link} local={isLocalHost() && !lanBase} onClose={() => setShowInvite(false)} />}
         {tab === 'setup' && <SetupView ctx={ctx} link={link} onOpen={() => setTab('games')} />}
         {tab === 'games' &&
           (session ? (

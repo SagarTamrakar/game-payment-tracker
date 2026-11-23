@@ -17,7 +17,8 @@ export function getToken(): string {
 }
 
 export const savedRoom = () => new URLSearchParams(location.search).get('room')?.toUpperCase() || localStorage.getItem(ROOM_KEY);
-export const inviteLink = (code: string) => `${location.origin}/?room=${code}`;
+export const inviteLink = (code: string, base: string = location.origin) => `${base}/?room=${code}`;
+export const isLocalHost = () => ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 
 export function useRoom() {
   const [view, setView] = useState<RoomView | null>(null);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Avatar from './Avatar';
 import type { Ctx } from '../lib/ctx';
 import { same } from '../lib/ctx';
 import { uid } from '../lib/room';
@@ -53,7 +54,7 @@ export default function SetupView({ ctx, link, onOpen }: { ctx: Ctx; link: strin
           return (
             <div key={n} className="row">
               <div>
-                <span className={m?.online ? 'dot on' : 'dot'} /> <b>{n}</b>{m?.master && ' (master)'}{same(n, me) && ' (you)'}
+                <Avatar name={n} /><span className={m?.online ? 'dot on' : 'dot'} /> <b>{n}</b>{m?.master && ' (master)'}{same(n, me) && ' (you)'}
                 {isMaster && <div className="muted">{store.contacts[n] ? '+' + store.contacts[n] : 'no mobile number'}</div>}
               </div>
               {isMaster && (

@@ -1,5 +1,6 @@
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import type { ClientMsg, RoomView } from '../src/lib/protocol';
@@ -148,6 +149,14 @@ const MIME: Record<string, string> = {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? '/', 'http://x');
+  if (url.pathname === '/lan') {
+    // Network addresses phones on the same Wi-Fi can use to reach this server.
+    const urls = Object.values(os.networkInterfaces()).flat()
+      .filter((i) => i && i.family === 'IPv4' && !i.internal)
+      .map((i) => `http://${i!.address}:${PORT}`);
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ urls }));
+    return;
+  }
   let file = path.join(DIST, path.normalize(decodeURIComponent(url.pathname)));
   if (!file.startsWith(DIST)) { res.writeHead(403).end(); return; }
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(DIST, 'index.html');
